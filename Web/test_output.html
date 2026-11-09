@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>地点关键字 + 公交路线规划</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <!--高德地图API部分-->
+    <style type="text/css">
+    html,
+    body,
+    #container {
+      width: 100%;
+      height: 100%;
+    }
+    </style>
+    <style type="text/css">
+
+        #panel {
+            position: fixed;
+            background-color: white;
+            max-height: 90%;
+            overflow-y: auto;
+            top: 10px;
+            right: 10px;
+            width: 280px;
+        }
+        #panel .amap-call {
+            background-color: #009cf9;
+            border-top-left-radius: 4px;
+   	        border-top-right-radius: 4px;
+        }
+        #panel .amap-lib-transfer {
+	        border-bottom-left-radius: 4px;
+   	        border-bottom-right-radius: 4px;
+            overflow: hidden;
+        }
+    </style>
+    
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
+    <script src="config.js"></script>
+    <script type="text/javascript">
+        window._AMapSecurityConfig = {
+            securityJsCode: window.STA_AMAP_SECURITY_CODE,
+        }
+      </script>
+    <!-- 引入jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://a.amap.com/jsapi_demos/static/demo-center/js/demoutils.js"></script>
+    <script type="text/javascript">
+        document.write('<script src="https://webapi.amap.com/maps?v=1.4.15&key=' + encodeURIComponent(window.STA_AMAP_WEB_KEY || '') + '&plugin=AMap.Transfer"><\/script>');
+    </script>
+
+    <script type="text/javascript" src="https://cache.amap.com/lbs/static/addToolbar.js"></script>
+
+    <!--控制左右分屏的CSS-->
+    <style>
+      .split {
+  height: 100%;
+  width: 50%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+/* 控制左侧 */
+.left {
+  left: 0;
+  background-color: #ffffff;
+}
+
+/* 控制右侧 */
+.right {
+  right: 0;
+  background-color: #ffffff;
+}
+
+/* 如果您希望内容水平和垂直居中 */
+.centered {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+/* 如果需要，设置居中容器内的图像样式 */
+.centered img {
+  width: 150px;
+  border-radius: 50%;
+}
+
+    </style>
+  </head>
+  <body>
+    <!--左侧内容-->
+    <div class="split left">
+        <style>
+            /*--预设--*/ 
+            body { padding:0px;margin: 0px; } 
+            
+            #lyrow, #lyrow input, #lyrow textarea { font-size:12px;font-family: 'Microsoft YaHei', '微软雅黑', MicrosoftJhengHei, '华文细黑', STHeiti, MingLiu; } 
+            /*--将宽度设为50vw,以适应半屏--*/
+            #lyrow {width: 50vw; }  
+            #lyrow div { min-height: 18px;  } 
+            #lyrow input, #lyrow textarea { border:rgb(235, 235, 235) 1px solid;border-radius: 2px;padding: 5px 4px;outline: 0;} 
+            #lyrow input:hover, #lyrow textarea:hover { border: 1px solid #6bc1f2; } 
+            /*--编辑--*/ 
+            #lyrow .title_des { justify-content:center;display:flex !important;flex-basis:20px; } 
+            #lyrow .des_text { padding:160px 0 30px 48px;color:rgba(240, 252, 255, 1);font-size:39px; } 
+            #lyrow .des_background { background-image:url(http://www.58html.com/folder/imgcss/202405/35fd565004ae6606ad9288ae770bcd2f.jpg);justify-content:flex-start;display:flex !important; } 
+            #lyrow .des { background-image:url(http://www.58html.com/folder/imgcss/202405/7089b7c12b06842d2c786b4a9cf063dc.jpg);background-size:auto auto;background-attachment:fixed;background-repeat:repeat; } 
+            #lyrow .describe { outline:rgba(57, 47, 65, 1) dashed 2px;border-radius:5px 5px 5px 5px;border:rgba(0, 0, 0, 1) none 0; } 
+            #lyrow .place_title { padding:10px 0 12px 25px;outline:rgb(255, 255, 255, 1) dotted 0;text-decoration:underline;position:static; } 
+            #lyrow .place_content { padding:0 45px 0 45px;font-size:15px;color:rgba(57, 47, 65, 1); } 
+            #lyrow .division { height:35px !important; } 
+            #lyrow .detail_title { letter-spacing:2px;font-weight:bold;font-size:30px;padding:0 0 0 25px; } 
+            .title-btn{
+            background-color: white;
+            color: black; 
+            border: 0px none #4CAF50;
+            }
+
+        </style>
+            <!--下载font-awesome.css图标包-->
+            <!--https://www.58html.com/html/template/font-awesome.zip-->
+        <link rel="stylesheet" href="https://www.58html.com/gui/css/font-awesome/css/font-awesome.css">
+        <div id="lyrow">
+            
+                    
+            <div > 
+                <div class="des"><br>
+                    <div class="des_text" id="destitle">北京四日行<br></div>
+                </div>
+                <div class="division"> </div>
+                <div class="describe">
+                    <h1 class="place_title">地点简介</h1>
+                    <div class="place_content" id="desintro">北京，中国的首都，是一座拥有悠久历史和丰富文化的城市。作为中国的政治、文化和教育中心，北京拥有许多著名的景点，如故宫、天安门广场、长城等。同时，北京也是现代化都市，高楼大厦、繁华商业区、世界级的博物馆和艺术中心，如国家大剧院、CCTV大楼等，彰显着这座城市的现代气息。北京还是美食天堂，烤鸭、涮羊肉等美食享誉中外。北京，古老与现代的完美结合，展现着中国的独特魅力。<br>
+                    <div><br></div></div>
+                    <h1 class="place_title">历史沿革<br></h1>
+                    <div class="place_content" id="deshis">
+                    <div>       北京作为中国的古都，有着悠久的历史。早在远古时期，北京地区就有人类活动。公元前1045年，北京成为蓟、燕等诸侯国的都城。公元10世纪，金朝在北京建立中都，成为都城。元朝改称大都，并定为都城，北京成为全国的政治、文化中心。明清两代，北京继续作为中国的都城，并进行了大规模的建设，如故宫、天安门广场等。20世纪初，北京成为中华民国的首都。1949年，中华人民共和国在北京成立，北京成为新中国的首都。如今，北京已成为世界级的城市，展现着中国的独特魅力和历史底蕴。<br><br></div></div> 
+                </div>
+                <div class="division"> </div>
+                <div class="detail_title">第一天 </div>
+                <div class="describe">
+                    <button onclick="show_route1()" class='title-btn'>
+                        <h1 class="place_title " id="day1d1"></h1>
+                    </button>
+                    <script>
+                        function show_route1(){
+                            var transfer = new AMap.Transfer(transOptions);
+                            transfer.search([
+                                {keyword: '国贸大酒店',city:'北京'},
+                                //第一个元素city缺省时取transOptions的city属性
+                                {keyword: '故宫',city:'北京'}
+                                //第二个元素city缺省时取transOptions的cityd属性
+                            ], function(status, result) {
+                                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                                if (status === 'complete') {
+                                    log.success('绘制公交路线完成')
+                                } else {
+                                    log.error('公交路线数据查询失败' + result)
+                                }
+                            });
+                                        }
+                    </script>
+                
+                <div class="place_content" id = 'day1d1d'> <br>
+                <div><br></div></div>
+                <button onclick="show_route2()" class='title-btn'>
+                    <h1 class="place_title " id="'day1d2"></h1>
+                </button>
+                <script>
+                    function show_route2(){
+                        var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '故宫',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '颐和园',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                    }
+                </script>
+                <div class="place_content" id = 'day1d2d'>
+                    <div>        <br><br></div>
+                </div> 
+
+                <div class="division"> </div>
+                <div class="detail_title">第二天 </div>
+                <div class="describe">
+                    <button onclick="show_route3()" class='title-btn'>
+                        <h1 class="place_title " id="day2d1"></h1>
+                    </button>
+                    <script>
+                        function show_route3(){
+                            var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '国贸大酒店',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '天坛',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                        }
+                    </script>
+                <div class="place_content" id="day2d1d"><br>
+                <div><br></div></div>
+                <button onclick="show_route4()" class='title-btn'>
+                    <h1 class="place_title " id="day2d2"></h1>
+                </button>
+                <script>
+                    function show_route4(){
+                        var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '天坛',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '地坛',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                </script>
+                <div class="place_content">
+                    <div id="day2d2d">       <br><br></div>
+                </div> 
+
+                <div class="division"> </div>
+                <div class="detail_title">第三天 </div>
+                <div class="describe">
+                    <button onclick="show_route5()" class='title-btn'>
+                        <h1 class="place_title " id="day3d1"></h1>
+                    </button>
+                    <script>
+                        function show_route5(){
+                            var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '国贸大酒店',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '恭王府',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                        }
+                    </script>
+                <div class="place_content" id="day3d1d"><br>
+                <div><br></div></div>
+                <button onclick="show_route6()" class='title-btn'>
+                    <h1 class="place_title " id="day3d2"></h1>
+                </button>
+                <script>
+                    function show_route6(){
+                        var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '恭王府',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '八达岭长城',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                    }
+                </script>
+                <div class="place_content">
+                    <div id="day3d2d">  Test    <br><br></div>
+                </div> 
+
+                <div class="division"> </div>
+                <div class="detail_title">第四天 </div>
+                <div class="describe">
+                    <button onclick="show_route7()" class='title-btn'>
+                        <h1 class="place_title " id="day4d1"></h1>
+                    </button>
+                    <script>
+                        function show_route7(){
+                            var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '国贸大酒店',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '圆明园',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                        }
+                    </script>
+                <div class="place_content" id="day4d1d">
+<br>
+                <div><br></div></div>
+                <button onclick="show_route8()" class='title-btn'>
+                    <h1 class="place_title " id="day4d2"></h1>
+                </button>
+                <script>
+                    function show_route8(){
+                        var transfer = new AMap.Transfer(transOptions);
+                        transfer.search([
+                {keyword: '圆明园',city:'北京'},
+                //第一个元素city缺省时取transOptions的city属性
+                {keyword: '东交民巷',city:'北京'}
+                //第二个元素city缺省时取transOptions的cityd属性
+            ], function(status, result) {
+                // result即是对应的公交路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_TransferResult
+                if (status === 'complete') {
+                    log.success('绘制公交路线完成')
+                } else {
+                    log.error('公交路线数据查询失败' + result)
+                }
+            });
+                    }
+                </script>
+                <div class="place_content">
+                    <div id="day4d2d"> 
+<br><br></div>
+                </div> 
+            </div>
+            
+            </div>
+        </div>
+            
+    </div>
+      
+
+    <!--右侧内容-->
+    <div class="split right">
+        <div id="container"></div>
+        <div id="panel"></div>
+        <script type="text/javascript">
+            var map = new AMap.Map("container", {
+                resizeEnable: true,
+                center: [116.397428, 39.90923],
+                zoom: 13 
+            });
+            var transOptions = {
+                map: map,
+                city: '北京市',
+                panel: 'panel',                           
+                policy: AMap.TransferPolicy.LEAST_TIME //乘车策略
+            };
+        </script>
+    </div>
+    <script>
+        $().ready(function(){ 
+            var des_result = eel.get_process_result()();
+            $("#day1d1").append("<div>"+des_result[0][0]+"</div>")
+            $("#day1d1d").append(des_result[0][1])
+            $("#day1d2").append(des_result[1][0])
+            $("#day1d2d").append(des_result[1][1])
+            $("#day2d1").append(des_result[2][0])
+            $("#day2d1d").append(des_result[2][1])
+            $("#day2d2").append(des_result[3][0])
+            $("#day2d2d").append(des_result[3][1])
+            $("#day3d1").append(des_result[4][0])
+            $("#day3d1d").append(des_result[4][1])
+            $("#day3d2").append(des_result[5][0])
+            $("#day3d2d").append(des_result[5][1])
+            $("#day4d1").append(des_result[6][0])
+            $("#day4d1d").append(des_result[6][1])
+            $("#day4d2").append(des_result[7][0])
+            $("#day4d2d").append(des_result[7][1])
+            eel.voice_out()();
+        })
+    </script>
+  </body>
+</html>

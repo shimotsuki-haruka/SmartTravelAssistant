@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>智旅家 - 你的个人AI旅行助手</title>
+        <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+        <script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+        <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <!-- 引入Bootstrap CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <!-- 引入jQuery -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <!-- 引入Bootstrap JS -->
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <!-- 引入Bootstrap DatePicker JS 和 CSS -->
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+        <script type="text/javascript" src="/eel.js"></script>
+        <style>
+            .form-group{
+                height: 60px;
+            }
+            .control-label{
+                margin-top:10px;
+            }
+            #fat-btn{
+                margin-left: 500px;
+            }
+            .btn-choice,.btn-choice::before{
+                width:200px;
+                height:30px;
+                line-height:2px;
+                text-align:center;
+                
+                border-radius:5px;
+                }
+                .btn-choice{
+                position:relative;
+                background:#5ad;
+                color:#fff;
+                cursor:pointer;
+                }
+                .btn-choice::before{
+                line-height: 30px;
+                content:"loading";
+                position:absolute;
+                display:none;
+                z-index:2;
+                top:0;
+                left:0;
+                color:#fff;
+                text-shadow:rgba(100,0,0,1) 0 0 3px;
+                background:linear-gradient(45deg,#fc0 0%,#fc0 20%,#fa0 20%, #fa0 45%,#fc0 45%,#fc0 70%,#fa0 70%, #fa0 95%,#fc0 95%,#fc0 100%);
+                background-size:30px 30px;
+                background-position:0 0;
+                animation:click 1s infinite linear;
+                }
+                .btn-choice.click::before{
+                display:block;
+                }
+                @keyframes click {
+                0%{
+                    background-position:0 0;
+                }
+                100%{
+                    background-position:30px 0;
+                }
+                }                              
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="text-center">
+                <h1>智旅家</h1>
+                <p class="lead">您的个人AI旅行助手</p>
+                <p style="text-align: center;">您只需提供一些基本信息，我们的智旅家助手就会根据您的喜好为您量身定制行程。</p>
+            </div>
+            <div class="row">
+                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="destination">请输入您的旅行目的地：</label>
+                        <input type="text" class="form-control" id="destination" list="destinationOptions" placeholder="例如：北京市">  
+                        <datalist id="destinationOptions"></datalist>  
+  
+                        <script>  
+                            // 使用fetch API从服务器获取cities.json数据  
+                            fetch('cities.json')  
+                                .then(response => {  
+                                    // 检查响应是否成功  
+                                    if (!response.ok) {  
+                                        throw new Error('Network response was not ok');  
+                                    }  
+                                    // 返回解析后的JSON数据（fetch已经处理了JSON.parse()）  
+                                    return response.json();  
+                                })  
+                                .then(data => {  
+     
+                                    const cities = data; // 或者如果是对象: const cities = data.cities;  
+                          
+                                    // 使用JavaScript动态创建<option>元素并添加到<datalist>中  
+                                    var datalist = document.getElementById('destinationOptions');  
+                                    cities.forEach(function(city) {  
+                                        var option = document.createElement('option');  
+                                        option.value = city; // 设置<option>的value属性  
+                                        datalist.appendChild(option);  
+                                    });  
+                                })  
+                                .catch(error => {  
+                                    console.error('There was a problem with your fetch operation:', error);  
+                                });  
+                        </script>   
+                    
+                    <div class="form-group">
+                        <label for="start-date">请选择你的旅行开始日期：</label>
+                        <div class='input-group date' id="start-date">
+                            <input type='text' class="form-control" id="startdate" placeholder="选择日期"/>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="end-date">请选择你的旅行结束日期：</label>
+                        <div class='input-group date' id="end-date">
+                            <input type='text' class="form-control" id="enddate" placeholder="选择日期"/>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="budget-radio">
+                        <fieldset>
+                            <label for="budget-t">请选择您的预算：</label>
+                            <div>
+                                <div class="radio-group">  
+                                    <input type="radio" id="lowBudget" name="budget" value="low" hidden>  
+                                    <label for="lowBudget" class="radio-label">  
+                                      <span class="radio-custom"></span>  
+                                      Low (0-1000元)  
+                                    </label>  
+                                      
+                                    <!-- 类似地添加中等和高预算的选项 -->  
+                                    <input type="radio" id="mediumBudget" name="budget" value="medium" hidden>  
+                                    <label for="mediumBudget" class="radio-label">  
+                                      <span class="radio-custom"></span>  
+                                      Medium (1000-5000元)  
+                                    </label>  
+                                      
+                                    <input type="radio" id="highBudget" name="budget" value="high" hidden>  
+                                    <label for="highBudget" class="radio-label">  
+                                      <span class="radio-custom"></span>  
+                                      High (5000+元)  
+                            </div>
+                        </fieldset>
+                        <style>
+                            .radio-group {  
+                            display: flex;  
+                            flex-direction: column; /* 或者根据需要改为 row */  
+                            gap: 10px; /* 选项之间的间距 */  
+                            }  
+                            
+                            .radio-label {  
+                            position: relative;  
+                            display: inline-block;  
+                            padding-left: 30px; /* 为自定义单选按钮留出空间 */  
+                            cursor: pointer;  
+                            user-select: none; /* 防止文本被选中 */  
+                            }  
+                            
+                            .radio-custom {  
+                            position: absolute;  
+                            top: 0;  
+                            left: 0;  
+                            width: 20px;  
+                            height: 20px;  
+                            border: 2px solid #ccc;  
+                            border-radius: 5px;  
+                            background-color: #fff;  
+                            display: flex;  
+                            justify-content: center;  
+                            align-items: center;   
+                            pointer-events: none;   
+                            }  
+                            
+                            /* 当单选按钮被选中时，改变自定义方框的样式 */  
+                            input[type="radio"]:checked + .radio-label .radio-custom {  
+                            background-color: #007BFF;  
+                            border-color: #007BFF;  
+                            /* 这里可以添加额外的样式来表示选中状态，但通常方框内不需要额外标记 */  
+                            }  
+
+                        </style>
+                    </div>
+                    <div class="partner-checkbox">
+                        <fieldset>
+                            <label for="partner-t">您计划和谁一同出行：</label>
+                            <div>  
+                                <!-- 独自出行 -->  
+                                <input type="radio" id="SOLO" name="partner" value="SOLO" class="partner-input" hidden>  
+                                <label for="SOLO" class="radio-label">  
+                                    <span class="radio-custom"></span>  
+                                    独自出行  
+                                </label>  
+                            <div>  
+                                <!-- 伴侣 -->  
+                                <input type="radio" id="COUPLE" name="partner" value="COUPLE" class="partner-input" hidden>  
+                                <label for="COUPLE" class="radio-label">  
+                                    <span class="radio-custom"></span>  
+                                    伴侣  
+                                </label>  
+                            </div>  
+                            <div>  
+                                <!-- 家人 -->  
+                                <input type="radio" id="FAMILY" name="partner" value="FAMILY" class="partner-input" hidden>  
+                                <label for="FAMILY" class="radio-label">  
+                                    <span class="radio-custom"></span>  
+                                    家人  
+                                </label>  
+                            <div>  
+                                <!-- 朋友 -->  
+                                <input type="radio" id="FRIENDS" name="partner" value="FRIENDS" class="partner-input" hidden>  
+                                <label for="FRIENDS" class="radio-label">  
+                                    <span class="radio-custom"></span>  
+                                    朋友  
+                                </label>  
+                            </div>  
+                        </fieldset>
+                        <style>
+                            .radio-group {  
+                            display: flex;  
+                            flex-direction: column; /* 或者根据需要改为 row */  
+                            gap: 10px; /* 选项之间的间距 */  
+                            }  
+                            
+                            .radio-label {  
+                            position: relative;  
+                            display: inline-block;  
+                            padding-left: 30px; /* 为自定义单选按钮留出空间 */  
+                            cursor: pointer;  
+                            user-select: none; /* 防止文本被选中 */  
+                            }  
+                            
+                            .radio-custom {  
+                            position: absolute;  
+                            top: 0;  
+                            left: 0;  
+                            width: 20px;  
+                            height: 20px;  
+                            border: 2px solid #ccc;  
+                            border-radius: 5px;  
+                            background-color: #fff;  
+                            display: flex;  
+                            justify-content: center;  
+                            align-items: center;   
+                            pointer-events: none;   
+                            }  
+                            
+                            /* 当单选按钮被选中时，改变自定义方框的样式 */  
+                            input[type="radio"]:checked + .radio-label .radio-custom {  
+                            background-color: #007BFF;  
+                            border-color: #007BFF;  
+                            /* 这里可以添加额外的样式来表示选中状态，但通常方框内不需要额外标记 */  
+                            }  
+
+                        </style>
+                    </div>
+                    <div class="form-group">
+                        <div></div>
+                        <label for="choice">个性化选择</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control personal" placeholder="示例：想去故宫">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default sleepStart" type="button" onclick="addinput()">+</button>
+                                
+                            </span>
+                            
+                        <script>
+                            function addinput(){
+                                if($('.sleepStart').length > 4) {
+                                    return alert('最多仅能添加5个选项')
+                                } else {
+                                    var htm = "<label> </label>";
+                                    htm+="<div class=\"input-group\">"
+                                    htm += "<input type=\"text\" class=\"form-control personal\" placeholder=\"示例：想去故宫\">";
+                                    htm += "<span class=\"input-group-btn\">";
+                                    htm+="<button class=\"btn btn-default sleepStart\" type=\"button\" onclick=\"addinput()\">+</button>";
+                                    htm+="</span></div>"
+                                    
+                                    $('#choice').append(htm);
+                                }
+                            }
+                        </script>
+                        </div><!-- /input-group -->
+                       
+                        <div id="choice",class="form-group">
+                            
+                        </div>
+                        <label> </label>
+                        <div class="form-group">
+                            <button id="submit-button" class="btn btn-primary btn-choice" type="button" onclick="gotoresult()">提交</button>
+                            <script>
+                                async function gotoresult(){
+                                    
+                                    // 获取输入框中的内容
+                                    var des = $('#destination').val();
+                                    var start = $('#startdate').val(); 
+                                    var end = $('#enddate').val();
+
+                                    //获取预算单选框中的值
+                                    var checkbudget=$("input[name='budget']:checked").val();
+                                    var checkpartner=$("input[name='partner']:checked").val();
+
+                                    switch(checkbudget){
+                                        case "low":
+                                            var budget=0;
+                                            break;
+                                        case "medium":
+                                            var budget=1;
+                                            break;
+                                        case "high":
+                                            var budget=2;
+                                            break;
+                                    }
+                                    switch(checkpartner){
+                                        case "SOLO":
+                                            var partner=0;
+                                            break;
+                                        case "FRIENDS":
+                                            var partner=1;
+                                            break;
+                                        case "FAMILY":
+                                            var partner=2;
+                                            break;
+                                        case "COUPLE":
+                                            var partner=3;
+                                            break;
+                                    }
+                                    
+                                    //获取个性化输入的值
+                                    var choice_lengh = $('.personal').length;
+                                    var choice_array=[];
+                                    for(var i=0;i<choice_lengh;i++){
+                                        choice_array.push($('.personal')[i].value);
+                                    }
+                                    
+                                    $('.btn-choice').addClass('click');
+                                    $('.btn').attr('disabled',true)
+                                    $('.form-control').attr('disabled',true)
+                                    $('.partner-input').attr('disabled',true)
+                                    $('.budget-input').attr('disabled',true)
+                                    var input_array=[des,start,end,budget,partner,choice_array];
+                                    eel.get_result(input_array)();
+                                    window.open('test_output.html')
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+
+                <div class="col-md-4"></div>           
+            </div>
+        </div>
+        <script>
+            $(document).ready(function(){
+                // 获取当前日期并设置为开始日期的最小可选日期
+                var currentDate = new Date();
+                currentDate.setHours(0, 0, 0, 0); // 确保时间为00:00:00以避免时区问题
+        
+                $('#start-date').datepicker({
+                    autoclose: true,
+                    todayHighlight: true,
+                    startDate: currentDate // 设置开始日期的最小可选日期为当前日期
+                }).on('changeDate', function(e) {
+                    // 设置结束日期为开始日期之后的第三天
+                    var newEndDate = new Date(e.date);
+                    newEndDate.setDate(newEndDate.getDate() + 3);
+                    
+                    // 更新结束日期的值
+                    $('#end-date').datepicker('update', newEndDate);
+                    
+                    // 禁用结束日期的选择器
+                    $('#end-date').datepicker('setStartDate', newEndDate);
+                    $('#end-date').datepicker('setEndDate', newEndDate);
+                    $('#end-date').prop('disabled', true);
+                });
+        
+                // 初始化结束日期选择器，但不允许用户手动选择日期
+                $('#end-date').datepicker({
+                    autoclose: true,
+                    todayHighlight: true
+                }).prop('disabled', true); // 禁用结束日期选择器
+            });
+        </script>
+        
+        
+</html>
